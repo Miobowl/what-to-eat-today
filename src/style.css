@@ -64,7 +64,7 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -73,11 +73,12 @@ body {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 
-  /* Subtle paper texture */
+  /* Subtle paper texture using layered gradients (mobile-compatible) */
   background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-blend-mode: soft-light;
-  background-size: 200px 200px;
+    radial-gradient(ellipse at 20% 30%, rgba(245, 236, 215, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(232, 160, 137, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 60% 20%, rgba(212, 167, 44, 0.06) 0%, transparent 35%),
+    linear-gradient(180deg, rgba(255, 251, 240, 0.5) 0%, transparent 30%, transparent 70%, rgba(245, 236, 215, 0.3) 100%);
 }
 
 ::-webkit-scrollbar {

@@ -48,16 +48,18 @@ function searchInXiaohongshu() {
 <style scoped>
 .search-bar {
   flex: 1;
+  min-width: 0; /* Allow shrinking */
   display: flex;
   gap: var(--space-sm);
 }
 
 .search-input-wrapper {
   flex: 1;
+  min-width: 0; /* Allow shrinking */
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: 0 var(--space-md);
+  gap: var(--space-xs);
+  padding: 0 var(--space-sm);
   background: var(--bg-card);
   border: 2px solid var(--cream-dark);
   border-radius: var(--radius-md);
@@ -73,10 +75,12 @@ function searchInXiaohongshu() {
 .search-icon {
   font-size: 14px;
   opacity: 0.6;
+  flex-shrink: 0;
 }
 
 input {
   flex: 1;
+  min-width: 0; /* Allow shrinking */
   padding: var(--space-sm) 0;
   border: none;
   background: transparent;
@@ -90,11 +94,12 @@ input::placeholder {
 }
 
 .search-btn {
+  flex-shrink: 0; /* Never shrink the button */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--space-md);
-  height: 44px;
+  padding: 0 var(--space-sm);
+  height: 40px;
   background: linear-gradient(135deg, #FF2442 0%, #D91A36 100%);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm), 0 2px 8px rgba(255, 36, 66, 0.25);
@@ -108,7 +113,7 @@ input::placeholder {
 
 .xhs-text {
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   letter-spacing: 0.02em;
