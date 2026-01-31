@@ -43,6 +43,14 @@
       <SearchBar />
     </div>
 
+    <!-- Filter Summary Bar (fixed) -->
+    <FilterSummaryBar
+      @random="doRandom"
+      @scroll-to-results="scrollToResults"
+    />
+    <!-- Spacer for fixed summary bar -->
+    <div v-if="hasActiveFilters" class="summary-bar-spacer"></div>
+
     <!-- Filter Sections -->
     <div class="filters-container">
       <FilterSection
@@ -84,7 +92,9 @@
     </div>
 
     <!-- Recipe List -->
-    <RecipeList :recipes="filterStore.filteredRecipes" />
+    <div ref="recipeListRef">
+      <RecipeList :recipes="filterStore.filteredRecipes" />
+    </div>
 
     <!-- Random Result Modal -->
     <RandomResult
@@ -97,12 +107,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRecipeStore } from '@/stores/recipes'
 import { useFilterStore } from '@/stores/filter'
 import type { Recipe, FilterState } from '@/types'
 import SearchBar from '@/components/SearchBar.vue'
 import FilterSection from '@/components/FilterSection.vue'
+import FilterSummaryBar from '@/components/FilterSummaryBar.vue'
 import RecipeList from '@/components/RecipeList.vue'
 import RandomResult from '@/components/RandomResult.vue'
 
@@ -113,6 +124,16 @@ const showRandomResult = ref(false)
 const randomRecipe = ref<Recipe | null>(null)
 const showFavorites = ref(false)
 const isRolling = ref(false)
+const recipeListRef = ref<HTMLElement | null>(null)
+
+const hasActiveFilters = computed(() => {
+  const f = filterStore.filters
+  return f.cuisines.length > 0 ||
+         f.cookingMethod.length > 0 ||
+         f.ingredients.length > 0 ||
+         f.type.length > 0 ||
+         f.proficiency.length > 0
+})
 
 onMounted(async () => {
   await recipeStore.initialize()
@@ -148,6 +169,10 @@ function toggleFavorites() {
   } else {
     filterStore.clearDimension('proficiency')
   }
+}
+
+function scrollToResults() {
+  recipeListRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 </script>
 
@@ -345,6 +370,12 @@ function toggleFavorites() {
 
 .quick-icon {
   font-size: 18px;
+}
+
+/* Summary Bar Spacer */
+.summary-bar-spacer {
+  height: 52px;
+  margin-bottom: var(--space-sm);
 }
 
 /* Filters Container */

@@ -60,11 +60,13 @@ function searchInXiaohongshu() {
   align-items: center;
   gap: var(--space-xs);
   padding: 0 var(--space-sm);
+  height: 40px;
   background: var(--bg-card);
   border: 2px solid var(--cream-dark);
   border-radius: var(--radius-md);
   transition: all 0.2s;
   box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
 }
 
 .search-input-wrapper:focus-within {

@@ -68,10 +68,25 @@ export const useRecipeStore = defineStore('recipes', () => {
       if (recipe.proficiency) proficiencies.add(recipe.proficiency)
     })
 
+    // 主材料优先排序：常用肉类和豆腐排在前面
+    const ingredientPriority = ['牛', '猪', '羊', '鸡', '豆腐']
+    const sortedIngredients = Array.from(ingredients).sort((a, b) => {
+      const aIndex = ingredientPriority.indexOf(a)
+      const bIndex = ingredientPriority.indexOf(b)
+      // 两者都在优先列表中，按优先列表顺序
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+      // 只有 a 在优先列表中，a 排前面
+      if (aIndex !== -1) return -1
+      // 只有 b 在优先列表中，b 排前面
+      if (bIndex !== -1) return 1
+      // 都不在优先列表中，按原始排序
+      return a.localeCompare(b, 'zh-CN')
+    })
+
     return {
       cuisines: Array.from(cuisines).sort(),
       cookingMethods: Array.from(cookingMethods).sort(),
-      ingredients: Array.from(ingredients).sort(),
+      ingredients: sortedIngredients,
       types: Array.from(types).sort(),
       proficiencies: Array.from(proficiencies).sort()
     }
