@@ -4,7 +4,8 @@
     :class="{ active: isActive }"
     @click="$emit('toggle')"
   >
-    {{ label }}
+    <span class="tag-text">{{ label }}</span>
+    <span v-if="isActive" class="tag-check">✓</span>
   </button>
 </template>
 
@@ -23,15 +24,18 @@ defineEmits<{
 .filter-tag {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  margin: 4px;
-  border: 1px solid #e0e0e0;
-  border-radius: 16px;
-  background: #fff;
-  font-size: 14px;
-  color: #333;
+  gap: 4px;
+  padding: 8px 14px;
+  background: var(--cream-dark);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  animation: slideInRight 0.3s ease-out both;
 }
 
 .filter-tag:active {
@@ -39,8 +43,19 @@ defineEmits<{
 }
 
 .filter-tag.active {
-  background: #4CAF50;
-  border-color: #4CAF50;
-  color: #fff;
+  background: var(--sage);
+  border-color: var(--sage);
+  color: white;
+  box-shadow: 0 2px 8px rgba(125, 148, 113, 0.3);
+}
+
+.tag-text {
+  line-height: 1;
+}
+
+.tag-check {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.9;
 }
 </style>

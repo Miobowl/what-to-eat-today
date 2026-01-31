@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle with warm cream color -->
+  <circle cx="50" cy="50" r="48" fill="#FDF6E3"/>
+  <circle cx="50" cy="50" r="48" fill="none" stroke="#F5ECD7" stroke-width="2"/>
+
+  <!-- Egg white - organic shape -->
+  <path d="M25 55 Q20 35 35 25 Q50 15 70 25 Q85 35 80 55 Q78 75 60 80 Q40 85 30 75 Q22 68 25 55Z"
+        fill="#FFFBF0"
+        stroke="#F5ECD7"
+        stroke-width="1.5"/>
+
+  <!-- Egg white shadow/depth -->
+  <path d="M28 55 Q24 38 38 28 Q52 20 68 28 Q80 38 77 55 Q75 72 58 77 Q42 80 33 72 Q26 65 28 55Z"
+        fill="white"/>
+
+  <!-- Egg yolk - gradient for 3D effect -->
+  <defs>
+    <radialGradient id="yolkGradient" cx="40%" cy="40%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="70%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#E8941A"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="52" cy="52" rx="18" ry="16" fill="url(#yolkGradient)"/>
+
+  <!-- Yolk highlight -->
+  <ellipse cx="46" cy="46" rx="6" ry="4" fill="#FFE44D" opacity="0.7"/>
+</svg>

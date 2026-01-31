@@ -1,9 +1,18 @@
 <template>
   <div class="recipe-card" @click="openInNotion">
-    <div class="recipe-name">{{ recipe.name }}</div>
-    <div class="recipe-tags">
-      <span v-if="recipe.type" class="tag type">{{ recipe.type }}</span>
-      <span v-if="recipe.cookingMethod" class="tag method">{{ recipe.cookingMethod }}</span>
+    <div class="card-content">
+      <div class="recipe-name">{{ recipe.name }}</div>
+      <div class="recipe-meta">
+        <span v-for="cuisine in recipe.cuisines" :key="cuisine" class="tag cuisine">
+          {{ cuisine }}
+        </span>
+        <span v-if="recipe.cookingMethod" class="tag method">
+          {{ recipe.cookingMethod }}
+        </span>
+      </div>
+    </div>
+    <div class="card-arrow">
+      <span class="arrow-icon">→</span>
     </div>
   </div>
 </template>
@@ -22,43 +31,104 @@ function openInNotion() {
 
 <style scoped>
 .recipe-card {
-  padding: 12px 16px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--cream-dark);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.recipe-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--sage);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .recipe-card:active {
   transform: scale(0.98);
+  box-shadow: var(--shadow-md);
+}
+
+.recipe-card:active::before {
+  opacity: 1;
+}
+
+.card-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .recipe-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+  letter-spacing: 0.02em;
 }
 
-.recipe-tags {
+.recipe-meta {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .tag {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
 }
 
-.tag.type {
-  background: #E3F2FD;
-  color: #1976D2;
+.tag.cuisine {
+  background: var(--sage-light);
+  color: var(--sage);
 }
 
 .tag.method {
-  background: #FFF3E0;
-  color: #F57C00;
+  background: var(--terracotta-light);
+  color: var(--terracotta);
+}
+
+.card-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--cream-dark);
+  border-radius: var(--radius-full);
+  margin-left: var(--space-sm);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.arrow-icon {
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.recipe-card:active .card-arrow {
+  background: var(--sage);
+}
+
+.recipe-card:active .arrow-icon {
+  color: white;
+  transform: translateX(2px);
 }
 </style>

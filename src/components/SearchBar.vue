@@ -1,13 +1,16 @@
 <template>
   <div class="search-bar">
-    <input
-      v-model="searchText"
-      type="text"
-      placeholder="搜索菜谱（跳转小红书）"
-      @keyup.enter="searchInXiaohongshu"
-    />
-    <button class="search-btn" @click="searchInXiaohongshu">
-      搜索
+    <div class="search-input-wrapper">
+      <span class="search-icon">🔍</span>
+      <input
+        v-model="searchText"
+        type="text"
+        placeholder="搜小红书菜谱..."
+        @keyup.enter="searchInXiaohongshu"
+      />
+    </div>
+    <button class="search-btn" @click="searchInXiaohongshu" title="在小红书搜索">
+      <span class="xhs-text">小红书</span>
     </button>
   </div>
 </template>
@@ -44,31 +47,70 @@ function searchInXiaohongshu() {
 
 <style scoped>
 .search-bar {
+  flex: 1;
   display: flex;
-  gap: 8px;
-  padding: 12px 0;
+  gap: var(--space-sm);
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  background: var(--bg-card);
+  border: 2px solid var(--cream-dark);
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-input-wrapper:focus-within {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(125, 148, 113, 0.15);
+}
+
+.search-icon {
+  font-size: 14px;
+  opacity: 0.6;
 }
 
 input {
   flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 16px;
+  padding: var(--space-sm) 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-primary);
   outline: none;
 }
 
-input:focus {
-  border-color: #4CAF50;
+input::placeholder {
+  color: var(--text-muted);
 }
 
 .search-btn {
-  padding: 12px 20px;
-  background: #FF2442;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-md);
+  height: 44px;
+  background: linear-gradient(135deg, #FF2442 0%, #D91A36 100%);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm), 0 2px 8px rgba(255, 36, 66, 0.25);
+  transition: all 0.2s;
+}
+
+.search-btn:active {
+  transform: scale(0.95);
+  box-shadow: var(--shadow-sm);
+}
+
+.xhs-text {
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 </style>

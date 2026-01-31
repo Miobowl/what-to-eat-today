@@ -10,6 +10,18 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  server: {
+    proxy: {
+      '/api/notion': {
+        target: 'https://api.notion.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/notion/, '/v1'),
+        headers: {
+          'Notion-Version': '2022-06-28'
+        }
+      }
+    }
+  },
   plugins: [
     vue(),
     VitePWA({
@@ -19,8 +31,8 @@ export default defineConfig({
         name: '今天吃啥',
         short_name: '吃啥',
         description: '快速决定今天吃什么',
-        theme_color: '#4CAF50',
-        background_color: '#ffffff',
+        theme_color: '#FDF6E3',
+        background_color: '#FDF6E3',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
