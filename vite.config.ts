@@ -23,6 +23,25 @@ export default defineConfig({
     }
   },
   plugins: [
+    {
+      name: 'mock-send-menu',
+      configureServer(server) {
+        server.middlewares.use('/api/send-menu', (req, res) => {
+          if (req.method === 'POST') {
+            let body = ''
+            req.on('data', chunk => { body += chunk })
+            req.on('end', () => {
+              console.log('[Mock] Send menu:', body)
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ success: true, id: 'mock-' + Date.now() }))
+            })
+          } else {
+            res.statusCode = 405
+            res.end(JSON.stringify({ error: 'Method not allowed' }))
+          }
+        })
+      }
+    },
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
