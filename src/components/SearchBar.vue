@@ -33,20 +33,28 @@ function searchInXiaohongshu() {
 
   const query = encodeURIComponent(searchText.value.trim())
   const webUrl = `https://www.xiaohongshu.com/search_result?keyword=${query}`
+  const appUrl = `xhsdiscover://search?keyword=${query}`
 
-  // PWA 模式下直接打开网页（App Scheme 在 PWA 中不可靠）
   if (isPWAMode()) {
-    window.open(webUrl, '_blank')
+    // PWA 模式：通过隐藏 iframe 尝试唤起 App
+    const iframe = document.createElement('iframe')
+    iframe.style.display = 'none'
+    iframe.src = appUrl
+    document.body.appendChild(iframe)
+
+    // 超时后如果页面没被切走，说明 App 未安装，跳转网页
+    setTimeout(() => {
+      document.body.removeChild(iframe)
+      if (!document.hidden) {
+        // App 未成功唤起，使用 location 跳转（会离开 PWA）
+        window.location.href = webUrl
+      }
+    }, 1500)
     return
   }
 
   // 非 PWA 模式：尝试 App Scheme，同时预先打开网页窗口避免被拦截
-  const appUrl = `xhsdiscover://search?keyword=${query}`
-
-  // 先同步打开网页窗口（避免 setTimeout 中被拦截）
   const webWindow = window.open(webUrl, '_blank')
-
-  // 尝试打开 App
   window.location.href = appUrl
 
   // 如果 App 成功打开（页面会隐藏），则关闭网页窗口
