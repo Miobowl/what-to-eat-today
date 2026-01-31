@@ -58,13 +58,19 @@
 html {
   font-size: 16px;
   touch-action: manipulation;
+  background-color: var(--bg-primary);
+  /* Subtle paper texture using layered gradients (mobile-compatible) */
+  background-image:
+    radial-gradient(ellipse at 20% 35%, rgba(245, 236, 215, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(232, 160, 137, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at 60% 25%, rgba(212, 167, 44, 0.06) 0%, transparent 35%);
+  background-attachment: fixed;
 }
 
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -72,13 +78,6 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-
-  /* Subtle paper texture using layered gradients (mobile-compatible) */
-  background-image:
-    radial-gradient(ellipse at 20% 30%, rgba(245, 236, 215, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(232, 160, 137, 0.08) 0%, transparent 40%),
-    radial-gradient(ellipse at 60% 20%, rgba(212, 167, 44, 0.06) 0%, transparent 35%),
-    linear-gradient(180deg, rgba(255, 251, 240, 0.5) 0%, transparent 30%, transparent 70%, rgba(245, 236, 215, 0.3) 100%);
 }
 
 ::-webkit-scrollbar {
