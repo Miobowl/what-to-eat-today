@@ -1,30 +1,35 @@
 import type { RecipeFromNotion } from '@/types'
 
-// 开发环境使用 Vite 代理，生产环境使用 serverless function
-const NOTION_API_BASE = import.meta.env.DEV
-  ? '/api/notion'
-  : '/api/notion'
+const NOTION_API_BASE = '/api/notion'
 
 export async function fetchRecipesFromNotion(): Promise<RecipeFromNotion[]> {
-  const apiKey = import.meta.env.VITE_NOTION_API_KEY
   const databaseId = import.meta.env.VITE_NOTION_DATABASE_ID
 
-  if (!apiKey || !databaseId) {
-    console.error('Missing VITE_NOTION_API_KEY or VITE_NOTION_DATABASE_ID in environment')
-    throw new Error('Missing Notion API configuration')
+  if (!databaseId) {
+    console.error('Missing VITE_NOTION_DATABASE_ID in environment')
+    throw new Error('Missing Notion database ID')
   }
 
   const recipes: RecipeFromNotion[] = []
   let hasMore = true
   let startCursor: string | undefined
 
+  // 开发环境需要传 API key，生产环境由 serverless function 处理
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+
+  if (import.meta.env.DEV) {
+    const apiKey = import.meta.env.VITE_NOTION_API_KEY
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`
+    }
+  }
+
   while (hasMore) {
     const response = await fetch(`${NOTION_API_BASE}/databases/${databaseId}/query`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify({
         start_cursor: startCursor,
         page_size: 100
