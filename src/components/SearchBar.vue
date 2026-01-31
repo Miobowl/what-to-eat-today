@@ -20,28 +20,41 @@ import { ref } from 'vue'
 
 const searchText = ref('')
 
+// 检测是否在 PWA standalone 模式
+function isPWAMode(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true
+  )
+}
+
 function searchInXiaohongshu() {
   if (!searchText.value.trim()) return
 
   const query = encodeURIComponent(searchText.value.trim())
-
-  // 小红书 App URL Scheme
-  const appUrl = `xhsdiscover://search?keyword=${query}`
   const webUrl = `https://www.xiaohongshu.com/search_result?keyword=${query}`
 
-  // 尝试打开小红书 App
-  const iframe = document.createElement('iframe')
-  iframe.style.display = 'none'
-  iframe.src = appUrl
-  document.body.appendChild(iframe)
+  // PWA 模式下直接打开网页（App Scheme 在 PWA 中不可靠）
+  if (isPWAMode()) {
+    window.open(webUrl, '_blank')
+    return
+  }
 
-  // 设置超时，如果 App 没打开则打开网页
+  // 非 PWA 模式：尝试 App Scheme，同时预先打开网页窗口避免被拦截
+  const appUrl = `xhsdiscover://search?keyword=${query}`
+
+  // 先同步打开网页窗口（避免 setTimeout 中被拦截）
+  const webWindow = window.open(webUrl, '_blank')
+
+  // 尝试打开 App
+  window.location.href = appUrl
+
+  // 如果 App 成功打开（页面会隐藏），则关闭网页窗口
   setTimeout(() => {
-    document.body.removeChild(iframe)
-    if (!document.hidden) {
-      window.open(webUrl, '_blank')
+    if (document.hidden && webWindow) {
+      webWindow.close()
     }
-  }, 2000)
+  }, 500)
 }
 </script>
 
