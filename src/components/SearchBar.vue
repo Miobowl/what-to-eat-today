@@ -3,116 +3,47 @@
     <div class="search-input-wrapper">
       <span class="search-icon">🔍</span>
       <input
-        v-model="searchText"
+        v-model="filterStore.searchKeyword"
         type="text"
-        placeholder="搜小红书菜谱..."
-        @keyup.enter="searchInXiaohongshu"
+        placeholder="搜索菜谱..."
+        @input="onSearch"
       />
+      <button
+        v-if="filterStore.searchKeyword"
+        class="clear-btn"
+        @click="clearSearch"
+        title="清除搜索"
+      >
+        ✕
+      </button>
     </div>
-    <button class="search-btn" @click="searchInXiaohongshu" title="在小红书搜索">
-      <span class="xhs-text">小红书</span>
-    </button>
-
-    <!-- App 唤起失败提示 -->
-    <Teleport to="body">
-      <div v-if="showFallbackHint" class="fallback-overlay" @click="dismissHint">
-        <div class="fallback-dialog" @click.stop>
-          <p>未能打开小红书 App</p>
-          <div class="fallback-actions">
-            <button class="fallback-btn primary" @click="openWebVersion">打开网页版</button>
-            <button class="fallback-btn" @click="dismissHint">取消</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useFilterStore } from '@/stores/filter'
 
-const searchText = ref('')
-const showFallbackHint = ref(false)
-let pendingWebUrl = ''
+const filterStore = useFilterStore()
 
-// 检测是否在 PWA standalone 模式
-function isPWAMode(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
-  )
+function onSearch() {
+  // 搜索是响应式的，输入时自动过滤
 }
 
-// 监听页面可见性变化，用于检测用户从 app scheme 失败后返回
-function handleVisibilityChange() {
-  if (document.visibilityState === 'visible' && pendingWebUrl) {
-    // 用户返回了，显示提示
-    showFallbackHint.value = true
-  }
-}
-
-function searchInXiaohongshu() {
-  if (!searchText.value.trim()) return
-
-  const query = encodeURIComponent(searchText.value.trim())
-  const webUrl = `https://www.xiaohongshu.com/search_result?keyword=${query}`
-  const appUrl = `xhsdiscover://search?keyword=${query}`
-
-  if (isPWAMode()) {
-    // PWA 模式：直接尝试 app scheme
-    pendingWebUrl = webUrl
-    showFallbackHint.value = false
-
-    // 添加一次性监听器
-    document.addEventListener('visibilitychange', handleVisibilityChange, { once: true })
-
-    // 设置超时清理（如果用户没有返回）
-    setTimeout(() => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      pendingWebUrl = ''
-    }, 10000)
-
-    // 直接跳转 app scheme
-    window.location.href = appUrl
-    return
-  }
-
-  // 非 PWA 模式：尝试 App Scheme，同时预先打开网页窗口避免被拦截
-  const webWindow = window.open(webUrl, '_blank')
-  window.location.href = appUrl
-
-  setTimeout(() => {
-    if (document.hidden && webWindow) {
-      webWindow.close()
-    }
-  }, 500)
-}
-
-function openWebVersion() {
-  if (pendingWebUrl) {
-    window.location.href = pendingWebUrl
-    pendingWebUrl = ''
-    showFallbackHint.value = false
-  }
-}
-
-function dismissHint() {
-  showFallbackHint.value = false
-  pendingWebUrl = ''
+function clearSearch() {
+  filterStore.searchKeyword = ''
 }
 </script>
 
 <style scoped>
 .search-bar {
   flex: 1;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
   display: flex;
-  gap: var(--space-sm);
 }
 
 .search-input-wrapper {
   flex: 1;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -139,7 +70,7 @@ function dismissHint() {
 
 input {
   flex: 1;
-  min-width: 0; /* Allow shrinking */
+  min-width: 0;
   padding: var(--space-sm) 0;
   border: none;
   background: transparent;
@@ -152,75 +83,23 @@ input::placeholder {
   color: var(--text-muted);
 }
 
-.search-btn {
-  flex-shrink: 0; /* Never shrink the button */
+.clear-btn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--space-sm);
-  height: 40px;
-  background: linear-gradient(135deg, #FF2442 0%, #D91A36 100%);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm), 0 2px 8px rgba(255, 36, 66, 0.25);
+  background: var(--cream-dark);
+  border-radius: 50%;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
   transition: all 0.2s;
 }
 
-.search-btn:active {
-  transform: scale(0.95);
-  box-shadow: var(--shadow-sm);
-}
-
-.xhs-text {
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
-}
-
-/* Fallback dialog */
-.fallback-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.fallback-dialog {
-  background: var(--bg-card);
-  padding: var(--space-lg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  text-align: center;
-  max-width: 280px;
-}
-
-.fallback-dialog p {
-  margin: 0 0 var(--space-md);
-  color: var(--text-primary);
-  font-size: 16px;
-}
-
-.fallback-actions {
-  display: flex;
-  gap: var(--space-sm);
-  justify-content: center;
-}
-
-.fallback-btn {
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  font-weight: 500;
-  background: var(--cream-dark);
-  color: var(--text-primary);
-}
-
-.fallback-btn.primary {
-  background: linear-gradient(135deg, #FF2442 0%, #D91A36 100%);
+.clear-btn:hover {
+  background: var(--sage);
   color: white;
 }
 </style>

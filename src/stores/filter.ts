@@ -12,10 +12,18 @@ export const useFilterStore = defineStore('filter', () => {
     proficiency: []
   })
 
+  const searchKeyword = ref('')
+
   const recipeStore = useRecipeStore()
 
   const filteredRecipes = computed(() => {
+    const keyword = searchKeyword.value.trim().toLowerCase()
+
     return recipeStore.recipes.filter(recipe => {
+      // 关键词模糊匹配（菜名）
+      if (keyword && !recipe.name.toLowerCase().includes(keyword)) {
+        return false
+      }
       // 菜系：OR 逻辑
       if (filters.value.cuisines.length > 0) {
         if (!filters.value.cuisines.some(c => recipe.cuisines.includes(c))) {
@@ -68,6 +76,7 @@ export const useFilterStore = defineStore('filter', () => {
     filters.value = {
       cuisines: [], cookingMethod: [], ingredients: [], type: [], proficiency: []
     }
+    searchKeyword.value = ''
   }
 
   function getRandomRecipe(): Recipe | null {
@@ -78,7 +87,7 @@ export const useFilterStore = defineStore('filter', () => {
   }
 
   return {
-    filters, filteredRecipes,
+    filters, filteredRecipes, searchKeyword,
     toggleFilter, clearDimension, clearAll, getRandomRecipe
   }
 })
