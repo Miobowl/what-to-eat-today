@@ -54,6 +54,15 @@
     <!-- Filter Sections -->
     <div class="filters-container">
       <FilterSection
+        title="类型"
+        icon="🍽️"
+        :options="recipeStore.filterOptions.types"
+        :selected="filterStore.filters.type"
+        @toggle="(v) => filterStore.toggleFilter('type', v)"
+        @clear="filterStore.clearDimension('type')"
+        @random="() => randomWithFilter('type')"
+      />
+      <FilterSection
         title="菜系"
         icon="🌍"
         :options="recipeStore.filterOptions.cuisines"
@@ -79,15 +88,6 @@
         @toggle="(v) => filterStore.toggleFilter('ingredients', v)"
         @clear="filterStore.clearDimension('ingredients')"
         @random="() => randomWithFilter('ingredients')"
-      />
-      <FilterSection
-        title="类型"
-        icon="🍽️"
-        :options="recipeStore.filterOptions.types"
-        :selected="filterStore.filters.type"
-        @toggle="(v) => filterStore.toggleFilter('type', v)"
-        @clear="filterStore.clearDimension('type')"
-        @random="() => randomWithFilter('type')"
       />
     </div>
 
@@ -346,7 +346,8 @@ function scrollToResults() {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
+  padding: 0 var(--space-md);
+  height: 40px;
   background: var(--bg-card);
   border: 2px solid var(--cream-dark);
   border-radius: var(--radius-md);
@@ -356,6 +357,7 @@ function scrollToResults() {
   white-space: nowrap;
   transition: all 0.2s;
   box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
 }
 
 .quick-btn:active {
