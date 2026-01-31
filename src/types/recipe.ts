@@ -21,3 +21,9 @@ export interface RecipeFromNotion {
   }
   url: string
 }
+
+export interface MenuItem {
+  id: string
+  name: string
+  isCustom: boolean  // true = 自选菜品, false = 数据库菜品
+}
