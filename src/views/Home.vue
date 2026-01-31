@@ -103,6 +103,9 @@
       @close="showRandomResult = false"
       @again="doRandom"
     />
+
+    <!-- Menu Float -->
+    <MenuFloat />
   </div>
 </template>
 
@@ -116,6 +119,7 @@ import FilterSection from '@/components/FilterSection.vue'
 import FilterSummaryBar from '@/components/FilterSummaryBar.vue'
 import RecipeList from '@/components/RecipeList.vue'
 import RandomResult from '@/components/RandomResult.vue'
+import MenuFloat from '@/components/MenuFloat.vue'
 
 const recipeStore = useRecipeStore()
 const filterStore = useFilterStore()
@@ -180,7 +184,7 @@ function scrollToResults() {
 .home {
   min-height: 100vh;
   padding: var(--space-md);
-  padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom));
+  padding-bottom: calc(180px + env(safe-area-inset-bottom));
   position: relative;
   overflow-x: hidden;
 }
