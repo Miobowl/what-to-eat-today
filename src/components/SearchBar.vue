@@ -12,6 +12,19 @@
     <button class="search-btn" @click="searchInXiaohongshu" title="在小红书搜索">
       <span class="xhs-text">小红书</span>
     </button>
+
+    <!-- App 唤起失败提示 -->
+    <Teleport to="body">
+      <div v-if="showFallbackHint" class="fallback-overlay" @click="dismissHint">
+        <div class="fallback-dialog" @click.stop>
+          <p>未能打开小红书 App</p>
+          <div class="fallback-actions">
+            <button class="fallback-btn primary" @click="openWebVersion">打开网页版</button>
+            <button class="fallback-btn" @click="dismissHint">取消</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -19,6 +32,8 @@
 import { ref } from 'vue'
 
 const searchText = ref('')
+const showFallbackHint = ref(false)
+let pendingWebUrl = ''
 
 // 检测是否在 PWA standalone 模式
 function isPWAMode(): boolean {
@@ -26,6 +41,14 @@ function isPWAMode(): boolean {
     window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as any).standalone === true
   )
+}
+
+// 监听页面可见性变化，用于检测用户从 app scheme 失败后返回
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && pendingWebUrl) {
+    // 用户返回了，显示提示
+    showFallbackHint.value = true
+  }
 }
 
 function searchInXiaohongshu() {
@@ -36,20 +59,21 @@ function searchInXiaohongshu() {
   const appUrl = `xhsdiscover://search?keyword=${query}`
 
   if (isPWAMode()) {
-    // PWA 模式：通过隐藏 iframe 尝试唤起 App
-    const iframe = document.createElement('iframe')
-    iframe.style.display = 'none'
-    iframe.src = appUrl
-    document.body.appendChild(iframe)
+    // PWA 模式：直接尝试 app scheme
+    pendingWebUrl = webUrl
+    showFallbackHint.value = false
 
-    // 超时后如果页面没被切走，说明 App 未安装，跳转网页
+    // 添加一次性监听器
+    document.addEventListener('visibilitychange', handleVisibilityChange, { once: true })
+
+    // 设置超时清理（如果用户没有返回）
     setTimeout(() => {
-      document.body.removeChild(iframe)
-      if (!document.hidden) {
-        // App 未成功唤起，使用 location 跳转（会离开 PWA）
-        window.location.href = webUrl
-      }
-    }, 1500)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      pendingWebUrl = ''
+    }, 10000)
+
+    // 直接跳转 app scheme
+    window.location.href = appUrl
     return
   }
 
@@ -57,12 +81,24 @@ function searchInXiaohongshu() {
   const webWindow = window.open(webUrl, '_blank')
   window.location.href = appUrl
 
-  // 如果 App 成功打开（页面会隐藏），则关闭网页窗口
   setTimeout(() => {
     if (document.hidden && webWindow) {
       webWindow.close()
     }
   }, 500)
+}
+
+function openWebVersion() {
+  if (pendingWebUrl) {
+    window.location.href = pendingWebUrl
+    pendingWebUrl = ''
+    showFallbackHint.value = false
+  }
+}
+
+function dismissHint() {
+  showFallbackHint.value = false
+  pendingWebUrl = ''
 }
 </script>
 
@@ -140,5 +176,51 @@ input::placeholder {
   font-weight: 600;
   white-space: nowrap;
   letter-spacing: 0.02em;
+}
+
+/* Fallback dialog */
+.fallback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.fallback-dialog {
+  background: var(--bg-card);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  max-width: 280px;
+}
+
+.fallback-dialog p {
+  margin: 0 0 var(--space-md);
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.fallback-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+.fallback-btn {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--cream-dark);
+  color: var(--text-primary);
+}
+
+.fallback-btn.primary {
+  background: linear-gradient(135deg, #FF2442 0%, #D91A36 100%);
+  color: white;
 }
 </style>
