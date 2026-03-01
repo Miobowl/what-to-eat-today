@@ -29,6 +29,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import type { Recipe } from '@/types'
 import { useMenuStore } from '@/stores/menu'
 
@@ -36,6 +37,7 @@ const props = defineProps<{
   recipe: Recipe
 }>()
 
+const router = useRouter()
 const menuStore = useMenuStore()
 const justAdded = ref(false)
 
@@ -47,8 +49,7 @@ const buttonText = computed(() => {
 })
 
 function openRecipe() {
-  // TODO: 后续 Task 12 会加路由跳转到菜谱详情页
-  console.log('打开菜谱详情:', props.recipe.id, props.recipe.name)
+  router.push({ name: 'recipe-detail', params: { id: props.recipe.id } })
 }
 
 function addToMenu() {

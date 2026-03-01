@@ -47,6 +47,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import type { Recipe } from '@/types'
 
 const props = defineProps<{
@@ -54,15 +55,17 @@ const props = defineProps<{
   recipe: Recipe | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
   again: []
 }>()
 
+const router = useRouter()
+
 function openRecipe() {
   if (props.recipe) {
-    // TODO: 后续 Task 12 会加路由跳转到菜谱详情页
-    console.log('打开菜谱详情:', props.recipe.id, props.recipe.name)
+    router.push({ name: 'recipe-detail', params: { id: props.recipe.id } })
+    emit('close')
   }
 }
 </script>
