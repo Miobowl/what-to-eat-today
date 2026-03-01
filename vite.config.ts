@@ -10,18 +10,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  server: {
-    proxy: {
-      '/api/notion': {
-        target: 'https://api.notion.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/notion/, '/v1'),
-        headers: {
-          'Notion-Version': '2022-06-28'
-        }
-      }
-    }
-  },
   plugins: [
     {
       name: 'mock-send-menu',
@@ -68,20 +56,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.notion\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'notion-api-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24
-              }
-            }
-          }
-        ]
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']
       }
     })
   ]
