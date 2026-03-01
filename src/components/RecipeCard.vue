@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="card-actions">
-      <button class="action-btn goto-btn" @click="openRecipe" title="查看菜谱">
+      <button class="action-btn goto-btn" @click="openExternalLink" title="打开原链接">
         <span class="arrow-icon">→</span>
       </button>
       <button
@@ -50,6 +50,13 @@ const buttonText = computed(() => {
 
 function openRecipe() {
   router.push({ name: 'recipe-detail', params: { id: props.recipe.id } })
+}
+
+function openExternalLink() {
+  const url = props.recipe.external_url || props.recipe.notion_url
+  if (url) {
+    window.open(url, '_blank')
+  }
 }
 
 function addToMenu() {
