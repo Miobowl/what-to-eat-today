@@ -56,7 +56,7 @@ const emit = defineEmits<{
 
 const dimensionIcons: Record<keyof FilterState, string> = {
   cuisines: '🌍',
-  cookingMethod: '🔥',
+  cooking_method: '🔥',
   ingredients: '🥬',
   type: '🍽️',
   proficiency: '👨‍🍳'
@@ -64,7 +64,7 @@ const dimensionIcons: Record<keyof FilterState, string> = {
 
 const dimensionLabels: Record<keyof FilterState, string> = {
   cuisines: '菜系',
-  cookingMethod: '做法',
+  cooking_method: '做法',
   ingredients: '主材料',
   type: '类型',
   proficiency: '擅长'
@@ -78,7 +78,7 @@ interface SelectedFilter {
 
 const allSelectedFilters = computed<SelectedFilter[]>(() => {
   const result: SelectedFilter[] = []
-  const dimensions: (keyof FilterState)[] = ['cuisines', 'cookingMethod', 'ingredients', 'type', 'proficiency']
+  const dimensions: (keyof FilterState)[] = ['cuisines', 'cooking_method', 'ingredients', 'type', 'proficiency']
 
   for (const dim of dimensions) {
     for (const value of filterStore.filters[dim]) {
@@ -185,7 +185,7 @@ function scrollToResults() {
   background: rgba(199, 91, 57, 0.08);
 }
 
-.filter-chip.cookingMethod {
+.filter-chip.cooking_method {
   border-color: rgba(212, 167, 44, 0.3);
   background: rgba(212, 167, 44, 0.08);
 }

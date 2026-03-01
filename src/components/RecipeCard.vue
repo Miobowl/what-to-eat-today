@@ -1,18 +1,18 @@
 <template>
   <div class="recipe-card">
-    <div class="card-content" @click="openInNotion">
+    <div class="card-content" @click="openRecipe">
       <div class="recipe-name">{{ recipe.name }}</div>
       <div class="recipe-meta">
         <span v-for="cuisine in recipe.cuisines" :key="cuisine" class="tag cuisine">
           {{ cuisine }}
         </span>
-        <span v-if="recipe.cookingMethod" class="tag method">
-          {{ recipe.cookingMethod }}
+        <span v-if="recipe.cooking_method" class="tag method">
+          {{ recipe.cooking_method }}
         </span>
       </div>
     </div>
     <div class="card-actions">
-      <button class="action-btn goto-btn" @click="openInNotion" title="查看菜谱">
+      <button class="action-btn goto-btn" @click="openRecipe" title="查看菜谱">
         <span class="arrow-icon">→</span>
       </button>
       <button
@@ -46,8 +46,9 @@ const buttonText = computed(() => {
   return '点菜'
 })
 
-function openInNotion() {
-  window.open(props.recipe.notionUrl, '_blank')
+function openRecipe() {
+  // TODO: 后续 Task 12 会加路由跳转到菜谱详情页
+  console.log('打开菜谱详情:', props.recipe.id, props.recipe.name)
 }
 
 function addToMenu() {

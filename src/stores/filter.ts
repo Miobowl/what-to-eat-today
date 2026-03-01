@@ -6,7 +6,7 @@ import { useRecipeStore } from './recipes'
 export const useFilterStore = defineStore('filter', () => {
   const filters = ref<FilterState>({
     cuisines: [],
-    cookingMethod: [],
+    cooking_method: [],
     ingredients: [],
     type: [],
     proficiency: []
@@ -31,8 +31,8 @@ export const useFilterStore = defineStore('filter', () => {
         }
       }
       // 做法：OR 逻辑
-      if (filters.value.cookingMethod.length > 0) {
-        if (!filters.value.cookingMethod.includes(recipe.cookingMethod)) {
+      if (filters.value.cooking_method.length > 0) {
+        if (!filters.value.cooking_method.includes(recipe.cooking_method)) {
           return false
         }
       }
@@ -74,7 +74,7 @@ export const useFilterStore = defineStore('filter', () => {
 
   function clearAll() {
     filters.value = {
-      cuisines: [], cookingMethod: [], ingredients: [], type: [], proficiency: []
+      cuisines: [], cooking_method: [], ingredients: [], type: [], proficiency: []
     }
     searchKeyword.value = ''
   }

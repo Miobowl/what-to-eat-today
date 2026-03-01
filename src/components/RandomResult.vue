@@ -23,7 +23,7 @@
               {{ cuisine }}
             </span>
             <span v-if="recipe?.type" class="tag type">{{ recipe.type }}</span>
-            <span v-if="recipe?.cookingMethod" class="tag method">{{ recipe.cookingMethod }}</span>
+            <span v-if="recipe?.cooking_method" class="tag method">{{ recipe.cooking_method }}</span>
           </div>
 
           <div class="modal-actions">
@@ -31,7 +31,7 @@
               <span class="btn-icon">🎲</span>
               <span>换一个</span>
             </button>
-            <button class="btn-go" @click="openNotion">
+            <button class="btn-go" @click="openRecipe">
               <span class="btn-icon">📖</span>
               <span>看菜谱</span>
             </button>
@@ -59,9 +59,10 @@ defineEmits<{
   again: []
 }>()
 
-function openNotion() {
+function openRecipe() {
   if (props.recipe) {
-    window.open(props.recipe.notionUrl, '_blank')
+    // TODO: 后续 Task 12 会加路由跳转到菜谱详情页
+    console.log('打开菜谱详情:', props.recipe.id, props.recipe.name)
   }
 }
 </script>

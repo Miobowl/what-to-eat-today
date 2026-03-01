@@ -11,10 +11,6 @@
           <span class="brand-icon">🍳</span>
           <h1>今天吃啥</h1>
         </div>
-        <div v-if="recipeStore.isSyncing" class="sync-badge">
-          <span class="sync-dot"></span>
-          同步中
-        </div>
       </div>
       <p class="tagline">翻开菜谱，开启美味</p>
     </header>
@@ -74,11 +70,11 @@
       <FilterSection
         title="做法"
         icon="🔥"
-        :options="recipeStore.filterOptions.cookingMethods"
-        :selected="filterStore.filters.cookingMethod"
-        @toggle="(v) => filterStore.toggleFilter('cookingMethod', v)"
-        @clear="filterStore.clearDimension('cookingMethod')"
-        @random="() => randomWithFilter('cookingMethod')"
+        :options="recipeStore.filterOptions.cooking_methods"
+        :selected="filterStore.filters.cooking_method"
+        @toggle="(v) => filterStore.toggleFilter('cooking_method', v)"
+        @clear="filterStore.clearDimension('cooking_method')"
+        @random="() => randomWithFilter('cooking_method')"
       />
       <FilterSection
         title="主材料"
@@ -133,7 +129,7 @@ const recipeListRef = ref<HTMLElement | null>(null)
 const hasActiveFilters = computed(() => {
   const f = filterStore.filters
   return f.cuisines.length > 0 ||
-         f.cookingMethod.length > 0 ||
+         f.cooking_method.length > 0 ||
          f.ingredients.length > 0 ||
          f.type.length > 0 ||
          f.proficiency.length > 0
