@@ -70,7 +70,7 @@
       <FilterSection
         title="做法"
         icon="🔥"
-        :options="recipeStore.filterOptions.cooking_methods"
+        :options="recipeStore.filterOptions.cookingMethods"
         :selected="filterStore.filters.cooking_method"
         @toggle="(v) => filterStore.toggleFilter('cooking_method', v)"
         @clear="filterStore.clearDimension('cooking_method')"
