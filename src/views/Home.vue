@@ -89,7 +89,16 @@
 
     <!-- Recipe List -->
     <div ref="recipeListRef">
-      <RecipeList :recipes="filterStore.filteredRecipes" />
+      <div v-if="recipeStore.isLoading" class="list-status">
+        <span class="status-icon">🍳</span>
+        <p>菜谱加载中...</p>
+      </div>
+      <div v-else-if="recipeStore.error" class="list-status">
+        <span class="status-icon">😵</span>
+        <p>{{ recipeStore.error }}</p>
+        <button class="retry-btn" @click="recipeStore.fetchRecipes()">重试</button>
+      </div>
+      <RecipeList v-else :recipes="filterStore.filteredRecipes" />
     </div>
 
     <!-- Random Result Modal -->
@@ -153,7 +162,8 @@ function randomFromAll() {
   }, 600)
 }
 
-function randomWithFilter(_dimension: keyof FilterState) {
+function randomWithFilter(dimension: keyof FilterState) {
+  filterStore.randomizeDimension(dimension)
   isRolling.value = true
   setTimeout(() => {
     isRolling.value = false
@@ -239,25 +249,6 @@ function scrollToResults() {
   font-weight: 400;
   color: var(--text-primary);
   letter-spacing: 0.1em;
-}
-
-.sync-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: var(--cream-dark);
-  border-radius: var(--radius-full);
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.sync-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--sage);
-  border-radius: 50%;
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .tagline {
@@ -386,5 +377,36 @@ function scrollToResults() {
   flex-direction: column;
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
+}
+
+/* List Status (loading / error) */
+.list-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-md);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.status-icon {
+  font-size: 32px;
+}
+
+.retry-btn {
+  padding: var(--space-xs) var(--space-lg);
+  background: var(--terracotta);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
+
+.retry-btn:active {
+  transform: scale(0.95);
 }
 </style>

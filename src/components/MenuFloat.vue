@@ -69,9 +69,13 @@ async function handleSubmit() {
   sendStatus.value = 'idle'
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    const menuToken = import.meta.env.VITE_MENU_TOKEN
+    if (menuToken) headers['X-Menu-Token'] = menuToken
+
     const response = await fetch('/api/send-menu', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         dishes: menuStore.items.map(item => ({
           name: item.name,
