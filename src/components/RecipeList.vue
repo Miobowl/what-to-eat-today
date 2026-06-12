@@ -1,121 +1,131 @@
 <template>
   <div class="recipe-list">
-    <div class="list-header">
-      <div class="header-line"></div>
-      <span class="header-text">
-        <span class="header-icon">📋</span>
-        共 {{ recipes.length }} 道菜
-      </span>
-      <div class="header-line"></div>
+    <div v-if="recipes.length === 0" class="empty">
+      <span class="empty-title">没有找到符合条件的菜</span>
+      <span class="empty-hint">试试调整筛选条件</span>
     </div>
-    <div class="list-content">
-      <TransitionGroup name="recipe">
+
+    <template v-else>
+      <section v-for="group in groups" :key="group.type" class="menu-section">
+        <div class="section-head">
+          <span class="head-line"></span>
+          <span class="head-text">{{ group.type }}<span class="head-count"> · {{ group.recipes.length }}</span></span>
+          <span class="head-line"></span>
+        </div>
         <RecipeCard
-          v-for="(recipe, index) in recipes"
-          :key="recipe.id"
-          :recipe="recipe"
-          :style="{ animationDelay: `${index * 0.05}s` }"
+          v-for="item in group.recipes"
+          :key="item.recipe.id"
+          :recipe="item.recipe"
+          :number="item.number"
         />
-      </TransitionGroup>
-      <div v-if="recipes.length === 0" class="empty">
-        <span class="empty-icon">🍽️</span>
-        <span class="empty-text">没有找到符合条件的菜品</span>
-        <span class="empty-hint">试试调整筛选条件</span>
-      </div>
-    </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Recipe } from '@/types'
 import RecipeCard from './RecipeCard.vue'
 
-defineProps<{
+const props = defineProps<{
   recipes: Recipe[]
 }>()
+
+const TYPE_ORDER = ['主菜', '小荤', '素菜', '蔬菜', '汤', '主食']
+
+interface NumberedRecipe {
+  recipe: Recipe
+  number: number
+}
+
+interface RecipeGroup {
+  type: string
+  recipes: NumberedRecipe[]
+}
+
+const groups = computed<RecipeGroup[]>(() => {
+  const byType = new Map<string, Recipe[]>()
+  for (const recipe of props.recipes) {
+    const type = recipe.type || '其他'
+    const list = byType.get(type) ?? []
+    list.push(recipe)
+    byType.set(type, list)
+  }
+
+  const orderedTypes = [...byType.keys()].sort((a, b) => {
+    const ai = TYPE_ORDER.indexOf(a)
+    const bi = TYPE_ORDER.indexOf(b)
+    if (ai !== -1 && bi !== -1) return ai - bi
+    if (ai !== -1) return -1
+    if (bi !== -1) return 1
+    return a.localeCompare(b, 'zh-CN')
+  })
+
+  let counter = 0
+  return orderedTypes.map(type => ({
+    type,
+    recipes: (byType.get(type) ?? []).map(recipe => ({ recipe, number: ++counter }))
+  }))
+})
 </script>
 
 <style scoped>
 .recipe-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  animation: fadeInUp 0.5s ease-out 0.3s both;
+  animation: fadeInUp 0.4s var(--ease-out) both;
 }
 
-.list-header {
+.menu-section + .menu-section {
+  margin-top: var(--space-lg);
+}
+
+.section-head {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-sm) 0;
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
 }
 
-.header-line {
+.head-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cream-dark), transparent);
+  background: var(--rule);
 }
 
-.header-text {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: 13px;
-  color: var(--text-muted);
+.head-text {
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: var(--ink-2);
   white-space: nowrap;
 }
 
-.header-icon {
-  font-size: 14px;
-}
-
-.list-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  overflow-y: auto;
-  padding-bottom: calc(var(--space-xl) * 2 + env(safe-area-inset-bottom));
-}
-
-/* Recipe card animation */
-.recipe-enter-active {
-  animation: fadeInUp 0.3s ease-out both;
-}
-
-.recipe-leave-active {
-  animation: fadeInUp 0.2s ease-in reverse both;
-}
-
-.recipe-move {
-  transition: transform 0.3s ease;
+.head-count {
+  font-size: 12px;
+  letter-spacing: 0;
+  text-indent: 0;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: var(--space-xl) var(--space-md);
   text-align: center;
+  gap: var(--space-xs);
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: var(--space-md);
-  opacity: 0.5;
-}
-
-.empty-text {
+.empty-title {
   font-family: var(--font-display);
-  font-size: 16px;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-xs);
+  font-size: 17px;
+  color: var(--ink-2);
 }
 
 .empty-hint {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--ink-3);
 }
 </style>

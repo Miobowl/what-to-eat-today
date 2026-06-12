@@ -1,51 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=ZCOOL+XiaoWei&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap');
 
 :root {
-  /* Warm kitchen palette */
-  --cream: #FDF6E3;
-  --cream-dark: #F5ECD7;
-  --paper: #FFFBF0;
-  --ink: #2C1810;
-  --ink-light: #5C4033;
-  --ink-faded: #8B7355;
-  --terracotta: #C75B39;
-  --terracotta-light: #E8A089;
-  --sage: #7D9471;
-  --sage-light: #B8C9AD;
-  --mustard: #D4A72C;
-  --mustard-light: #F0D78C;
+  /* 菜单纸色板 */
+  --paper: oklch(0.972 0.022 92);
+  --paper-raised: oklch(0.985 0.014 95);
+  --paper-dim: oklch(0.938 0.026 90);
+  --ink: oklch(0.25 0.04 45);
+  --ink-2: oklch(0.42 0.045 50);
+  --ink-3: oklch(0.58 0.04 65);
+  --seal: oklch(0.55 0.13 35);
+  --seal-deep: oklch(0.47 0.12 33);
+  --seal-wash: oklch(0.55 0.13 35 / 0.09);
+  --sage: oklch(0.55 0.06 140);
+  --sage-wash: oklch(0.55 0.06 140 / 0.1);
+  --mustard: oklch(0.68 0.12 85);
+  --mustard-wash: oklch(0.74 0.12 85 / 0.14);
+  --rule: oklch(0.88 0.025 88);
 
-  /* Semantic colors */
-  --bg-primary: var(--cream);
-  --bg-card: var(--paper);
+  /* 兼容旧语义名（组件过渡期引用） */
+  --cream: var(--paper);
+  --cream-dark: var(--paper-dim);
+  --bg-primary: var(--paper);
+  --bg-card: var(--paper-raised);
   --text-primary: var(--ink);
-  --text-secondary: var(--ink-light);
-  --text-muted: var(--ink-faded);
-  --accent: var(--terracotta);
-  --accent-secondary: var(--sage);
-  --highlight: var(--mustard);
+  --text-secondary: var(--ink-2);
+  --text-muted: var(--ink-3);
+  --terracotta: var(--seal);
+  --accent: var(--seal);
 
-  /* Typography */
+  /* 字体 */
   --font-display: 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
   --font-body: 'Noto Serif SC', 'PingFang SC', serif;
 
-  /* Spacing */
+  /* 间距 */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 32px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(44, 24, 16, 0.08);
-  --shadow-md: 0 4px 12px rgba(44, 24, 16, 0.12);
-  --shadow-lg: 0 8px 24px rgba(44, 24, 16, 0.16);
-
-  /* Border radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  /* 圆角阶梯: 纸面取直, 弹层略圆 */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-full: 9999px;
+
+  /* 唯一允许的阴影: 弹层 */
+  --shadow-sheet: 0 -8px 32px oklch(0.25 0.04 45 / 0.14);
+  --shadow-pop: 0 12px 40px oklch(0.25 0.04 45 / 0.18);
+
+  /* 缓动 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* 布局 */
+  --content-max: 600px;
+  --menubar-height: 60px;
 }
 
 * {
@@ -58,12 +68,11 @@
 html {
   font-size: 16px;
   touch-action: manipulation;
-  background-color: var(--bg-primary);
-  /* Subtle paper texture using layered gradients (mobile-compatible) */
+  background-color: var(--paper);
+  /* 纸面微肌理 */
   background-image:
-    radial-gradient(ellipse at 20% 35%, rgba(245, 236, 215, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(232, 160, 137, 0.08) 0%, transparent 40%),
-    radial-gradient(ellipse at 60% 25%, rgba(212, 167, 44, 0.06) 0%, transparent 35%);
+    radial-gradient(ellipse at 20% 35%, oklch(0.95 0.025 90 / 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, oklch(0.55 0.13 35 / 0.04) 0%, transparent 40%);
   background-attachment: fixed;
 }
 
@@ -71,11 +80,9 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--text-primary);
+  color: var(--ink);
   line-height: 1.6;
   min-height: 100vh;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
@@ -92,6 +99,14 @@ button {
   outline: none;
   -webkit-appearance: none;
   background: none;
+  color: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
 }
 
 input {
@@ -99,66 +114,28 @@ input {
   -webkit-appearance: none;
 }
 
-/* Keyframe animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
-}
-
+/* 关键帧 */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes stampDown {
+  0% { opacity: 0; transform: rotate(-6deg) scale(1.6); }
+  100% { opacity: 1; transform: rotate(-6deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-@keyframes roll {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(720deg); }
-}
-
-/* Utility classes */
-.animate-fade-in {
-  animation: fadeInUp 0.4s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
 }

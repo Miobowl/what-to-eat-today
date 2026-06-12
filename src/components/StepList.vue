@@ -8,10 +8,14 @@ defineProps<{
 
 <template>
   <section class="step-list" v-if="steps.length > 0">
-    <h3 class="section-title">烹饪步骤</h3>
+    <div class="section-head">
+      <span class="head-line"></span>
+      <h3 class="head-text">做法</h3>
+      <span class="head-line"></span>
+    </div>
     <ol class="steps">
       <li v-for="step in steps" :key="step.id" class="step-item">
-        <div class="step-number">{{ step.step_number }}</div>
+        <span class="step-number">{{ String(step.step_number).padStart(2, '0') }}</span>
         <div class="step-content">
           <p class="step-desc">{{ step.description }}</p>
           <img
@@ -28,42 +32,53 @@ defineProps<{
 </template>
 
 <style scoped>
-.section-title {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--ink);
+.step-list {
+  margin-bottom: var(--space-lg);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
   margin-bottom: var(--space-sm);
+}
+
+.head-line {
+  flex: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.head-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: var(--ink-2);
 }
 
 .steps {
   list-style: none;
-  padding: 0;
-  margin: 0;
 }
 
 .step-item {
   display: flex;
   gap: var(--space-sm);
   padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--cream-dark);
 }
 
-.step-item:last-child {
-  border-bottom: none;
+.step-item + .step-item {
+  border-top: 1px solid var(--rule);
 }
 
 .step-number {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  background: var(--terracotta);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--seal);
+  line-height: 1.7;
 }
 
 .step-content {
@@ -72,15 +87,16 @@ defineProps<{
 }
 
 .step-desc {
-  font-size: 0.95rem;
-  color: var(--ink-light);
-  line-height: 1.6;
-  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.7;
 }
 
 .step-image {
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   margin-top: var(--space-sm);
+  outline: 1px solid oklch(0.25 0.04 45 / 0.1);
+  outline-offset: -1px;
 }
 </style>

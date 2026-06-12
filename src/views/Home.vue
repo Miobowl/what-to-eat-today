@@ -1,116 +1,70 @@
 <template>
   <div class="home">
-    <!-- Decorative elements -->
-    <div class="deco-top-left"></div>
-    <div class="deco-top-right"></div>
-
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="brand">
-          <span class="brand-icon">🍳</span>
-          <h1>今天吃啥</h1>
-        </div>
-      </div>
-      <p class="tagline">翻开菜谱，开启美味</p>
+    <!-- 餐牌头 -->
+    <header class="masthead">
+      <h1 class="masthead-title">今天吃啥</h1>
+      <p class="masthead-sub">私房菜单 · 共 {{ recipeStore.recipes.length }} 道</p>
+      <div class="masthead-rule" aria-hidden="true"></div>
     </header>
 
-    <!-- Hero Action -->
-    <div class="hero-action">
-      <button class="random-hero" @click="randomFromAll">
-        <span class="dice" :class="{ rolling: isRolling }">🎲</span>
-        <span class="hero-text">
-          <span class="hero-title">随便吃点</span>
-          <span class="hero-sub">让命运决定今天的美味</span>
-        </span>
-      </button>
-    </div>
+    <!-- 抽签入口 -->
+    <button class="draw-hero" @click="doDraw">
+      <AppIcon name="dice" :size="26" class="hero-dice" />
+      <span class="hero-text">
+        <span class="hero-title">随便吃点</span>
+        <span class="hero-sub">拿不定主意，交给骰子</span>
+      </span>
+    </button>
 
-    <!-- Quick Actions -->
-    <div class="quick-row">
-      <button
-        class="quick-btn"
-        :class="{ active: showFavorites }"
-        @click="toggleFavorites"
-      >
-        <span class="quick-icon">👨‍🍳</span>
-        <span>拿手菜</span>
-      </button>
+    <!-- 工具行: 搜索 / 拿手菜 / 筛选 -->
+    <div class="toolbar">
       <SearchBar />
+      <button class="tool-chip" :class="{ on: bestOn }" @click="toggleBest">
+        拿手菜
+      </button>
+      <button class="tool-filter" @click="showSheet = true">
+        <AppIcon name="filter" :size="16" />
+        筛选
+        <span v-if="activeCount > 0" class="filter-badge">{{ activeCount }}</span>
+      </button>
     </div>
 
-    <!-- Filter Summary Bar (fixed) -->
-    <FilterSummaryBar
-      @random="doRandom"
-      @scroll-to-results="scrollToResults"
-    />
-    <!-- Spacer for fixed summary bar -->
-    <div v-if="hasActiveFilters" class="summary-bar-spacer"></div>
-
-    <!-- Filter Sections -->
-    <div class="filters-container">
-      <FilterSection
-        title="类型"
-        icon="🍽️"
-        :options="recipeStore.filterOptions.types"
-        :selected="filterStore.filters.type"
-        @toggle="(v) => filterStore.toggleFilter('type', v)"
-        @clear="filterStore.clearDimension('type')"
-        @random="() => randomWithFilter('type')"
-      />
-      <FilterSection
-        title="菜系"
-        icon="🌍"
-        :options="recipeStore.filterOptions.cuisines"
-        :selected="filterStore.filters.cuisines"
-        @toggle="(v) => filterStore.toggleFilter('cuisines', v)"
-        @clear="filterStore.clearDimension('cuisines')"
-        @random="() => randomWithFilter('cuisines')"
-      />
-      <FilterSection
-        title="做法"
-        icon="🔥"
-        :options="recipeStore.filterOptions.cookingMethods"
-        :selected="filterStore.filters.cooking_method"
-        @toggle="(v) => filterStore.toggleFilter('cooking_method', v)"
-        @clear="filterStore.clearDimension('cooking_method')"
-        @random="() => randomWithFilter('cooking_method')"
-      />
-      <FilterSection
-        title="主材料"
-        icon="🥬"
-        :options="recipeStore.filterOptions.ingredients"
-        :selected="filterStore.filters.ingredients"
-        @toggle="(v) => filterStore.toggleFilter('ingredients', v)"
-        @clear="filterStore.clearDimension('ingredients')"
-        @random="() => randomWithFilter('ingredients')"
-      />
+    <!-- 已选条件 chips -->
+    <div v-if="activeChips.length > 0" class="chips">
+      <button
+        v-for="chip in activeChips"
+        :key="`${chip.dimension}-${chip.value}`"
+        class="chip"
+        @click="filterStore.toggleFilter(chip.dimension, chip.value)"
+      >
+        {{ chip.value }}
+        <AppIcon name="x" :size="11" />
+      </button>
+      <button class="chip-clear" @click="filterStore.clearAll()">清空</button>
     </div>
 
-    <!-- Recipe List -->
-    <div ref="recipeListRef">
-      <div v-if="recipeStore.isLoading" class="list-status">
-        <span class="status-icon">🍳</span>
-        <p>菜谱加载中...</p>
-      </div>
-      <div v-else-if="recipeStore.error" class="list-status">
-        <span class="status-icon">😵</span>
-        <p>{{ recipeStore.error }}</p>
-        <button class="retry-btn" @click="recipeStore.fetchRecipes()">重试</button>
-      </div>
-      <RecipeList v-else :recipes="filterStore.filteredRecipes" />
+    <!-- 菜单列表 -->
+    <div v-if="recipeStore.isLoading" class="list-status">
+      <p>菜谱加载中…</p>
     </div>
+    <div v-else-if="recipeStore.error" class="list-status">
+      <p>{{ recipeStore.error }}</p>
+      <button class="retry-btn" @click="recipeStore.fetchRecipes()">重试</button>
+    </div>
+    <RecipeList v-else :recipes="filterStore.filteredRecipes" />
 
-    <!-- Random Result Modal -->
-    <RandomResult
-      :visible="showRandomResult"
-      :recipe="randomRecipe"
-      @close="showRandomResult = false"
-      @again="doRandom"
+    <FilterSheet :visible="showSheet" @close="showSheet = false" />
+
+    <DrawOverlay
+      :visible="showDraw"
+      :recipe="drawnRecipe"
+      :reel-names="reelNames"
+      :roll-id="rollId"
+      @close="showDraw = false"
+      @again="doDraw"
     />
 
-    <!-- Menu Float -->
-    <MenuFloat />
+    <MenuBar />
   </div>
 </template>
 
@@ -119,294 +73,289 @@ import { ref, computed, onMounted } from 'vue'
 import { useRecipeStore } from '@/stores/recipes'
 import { useFilterStore } from '@/stores/filter'
 import type { Recipe, FilterState } from '@/types'
+import AppIcon from '@/components/AppIcon.vue'
 import SearchBar from '@/components/SearchBar.vue'
-import FilterSection from '@/components/FilterSection.vue'
-import FilterSummaryBar from '@/components/FilterSummaryBar.vue'
+import FilterSheet from '@/components/FilterSheet.vue'
 import RecipeList from '@/components/RecipeList.vue'
-import RandomResult from '@/components/RandomResult.vue'
-import MenuFloat from '@/components/MenuFloat.vue'
+import DrawOverlay from '@/components/DrawOverlay.vue'
+import MenuBar from '@/components/MenuBar.vue'
 
 const recipeStore = useRecipeStore()
 const filterStore = useFilterStore()
 
-const showRandomResult = ref(false)
-const randomRecipe = ref<Recipe | null>(null)
-const showFavorites = ref(false)
-const isRolling = ref(false)
-const recipeListRef = ref<HTMLElement | null>(null)
+const showSheet = ref(false)
+const showDraw = ref(false)
+const drawnRecipe = ref<Recipe | null>(null)
+const reelNames = ref<string[]>([])
+const rollId = ref(0)
 
-const hasActiveFilters = computed(() => {
-  const f = filterStore.filters
-  return f.cuisines.length > 0 ||
-         f.cooking_method.length > 0 ||
-         f.ingredients.length > 0 ||
-         f.type.length > 0 ||
-         f.proficiency.length > 0
-})
+const DIMENSIONS: (keyof FilterState)[] = ['type', 'cuisines', 'cooking_method', 'ingredients', 'proficiency']
+
+const activeCount = computed(() =>
+  DIMENSIONS.reduce((sum, dim) => sum + filterStore.filters[dim].length, 0)
+)
+
+interface ActiveChip {
+  dimension: keyof FilterState
+  value: string
+}
+
+const activeChips = computed<ActiveChip[]>(() =>
+  DIMENSIONS.flatMap(dimension =>
+    filterStore.filters[dimension].map(value => ({ dimension, value }))
+  )
+)
+
+const bestOn = computed(() => filterStore.filters.proficiency.includes('拿手菜'))
 
 onMounted(async () => {
   await recipeStore.initialize()
 })
 
-function doRandom() {
-  randomRecipe.value = filterStore.getRandomRecipe()
-  showRandomResult.value = true
+function toggleBest() {
+  filterStore.toggleFilter('proficiency', '拿手菜')
 }
 
-function randomFromAll() {
-  isRolling.value = true
+function doDraw() {
+  const recipe = filterStore.getRandomRecipe()
+  drawnRecipe.value = recipe
 
-  setTimeout(() => {
-    isRolling.value = false
-    doRandom()
-  }, 600)
-}
-
-function randomWithFilter(dimension: keyof FilterState) {
-  filterStore.randomizeDimension(dimension)
-  isRolling.value = true
-  setTimeout(() => {
-    isRolling.value = false
-    doRandom()
-  }, 600)
-}
-
-function toggleFavorites() {
-  showFavorites.value = !showFavorites.value
-  if (showFavorites.value) {
-    filterStore.clearAll()
-    filterStore.toggleFilter('proficiency', '拿手菜')
+  if (recipe) {
+    const others = filterStore.filteredRecipes
+      .filter(r => r.id !== recipe.id)
+      .map(r => r.name)
+    // 打乱后取一段做滚轴，结尾落在抽中的菜上
+    for (let i = others.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[others[i], others[j]] = [others[j], others[i]]
+    }
+    reelNames.value = [...others.slice(0, 13), recipe.name]
   } else {
-    filterStore.clearDimension('proficiency')
+    reelNames.value = []
   }
-}
 
-function scrollToResults() {
-  recipeListRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  rollId.value++
+  showDraw.value = true
 }
 </script>
 
 <style scoped>
 .home {
   min-height: 100vh;
+  max-width: var(--content-max);
+  margin: 0 auto;
   padding: var(--space-md);
-  padding-bottom: calc(180px + env(safe-area-inset-bottom));
-  position: relative;
-  overflow-x: hidden;
+  padding-top: calc(var(--space-md) + env(safe-area-inset-top));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
-/* Decorative corners */
-.deco-top-left,
-.deco-top-right {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  pointer-events: none;
-  opacity: 0.15;
-}
-
-.deco-top-left {
-  top: 0;
-  left: 0;
-  background: radial-gradient(circle at top left, var(--terracotta) 0%, transparent 70%);
-}
-
-.deco-top-right {
-  top: 0;
-  right: 0;
-  background: radial-gradient(circle at top right, var(--sage) 0%, transparent 70%);
-}
-
-/* Header */
-.header {
+/* 餐牌头 */
+.masthead {
   text-align: center;
-  margin-bottom: var(--space-lg);
-  animation: fadeInUp 0.6s ease-out;
+  padding: var(--space-sm) 0 var(--space-md);
+  animation: fadeInUp 0.5s var(--ease-out);
 }
 
-.header-content {
+.masthead-title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-indent: 0.18em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.masthead-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.masthead-rule {
+  margin-top: var(--space-md);
+  height: 4px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* 抽签入口 */
+.draw-hero {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  margin-bottom: var(--space-xs);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-.brand-icon {
-  font-size: 32px;
-  animation: float 3s ease-in-out infinite;
-}
-
-.header h1 {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 400;
-  color: var(--text-primary);
-  letter-spacing: 0.1em;
-}
-
-.tagline {
-  font-size: 14px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
-
-/* Hero Action */
-.hero-action {
-  margin-bottom: var(--space-lg);
-  animation: fadeInUp 0.6s ease-out 0.1s both;
-}
-
-.random-hero {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-lg);
-  background: linear-gradient(135deg, var(--terracotta) 0%, #A84832 100%);
-  border-radius: var(--radius-lg);
+  min-height: 60px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--seal);
+  border-radius: var(--radius-sm);
   color: white;
-  text-align: left;
-  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.2);
-  transition: transform 0.2s, box-shadow 0.2s;
-  position: relative;
-  overflow: hidden;
+  margin-bottom: var(--space-md);
+  transition: transform 0.15s, background-color 0.15s;
+  animation: fadeInUp 0.5s var(--ease-out) 0.05s both;
 }
 
-.random-hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.5;
-}
-
-.random-hero:active {
+.draw-hero:active {
   transform: scale(0.98);
-  box-shadow: var(--shadow-md);
+  background: var(--seal-deep);
 }
 
-.dice {
-  font-size: 48px;
-  position: relative;
-  z-index: 1;
-  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.dice.rolling {
-  animation: roll 0.6s ease-out;
+.hero-dice {
+  flex-shrink: 0;
 }
 
 .hero-text {
   display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 1;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px var(--space-sm);
 }
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 0.05em;
+  font-size: 20px;
+  letter-spacing: 0.1em;
 }
 
 .hero-sub {
-  font-size: 13px;
-  opacity: 0.85;
-  margin-top: 2px;
+  font-size: 12px;
+  color: oklch(0.95 0.02 50 / 0.85);
 }
 
-/* Quick Row */
-.quick-row {
-  display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
-  animation: fadeInUp 0.6s ease-out 0.2s both;
-}
-
-.quick-btn {
+/* 工具行 */
+.toolbar {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding: 0 var(--space-md);
-  height: 40px;
-  background: var(--bg-card);
-  border: 2px solid var(--cream-dark);
-  border-radius: var(--radius-md);
-  font-size: 14px;
+  margin-bottom: var(--space-sm);
+  animation: fadeInUp 0.5s var(--ease-out) 0.1s both;
+}
+
+.tool-chip {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-full);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
-  box-sizing: border-box;
+  color: var(--ink-2);
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s, transform 0.15s;
 }
 
-.quick-btn:active {
-  transform: scale(0.96);
+.tool-chip:active {
+  transform: scale(0.95);
 }
 
-.quick-btn.active {
-  background: var(--mustard-light);
-  border-color: var(--mustard);
+.tool-chip.on {
+  border-color: var(--seal);
+  box-shadow: inset 0 0 0 0.5px var(--seal);
+  color: var(--seal);
+  background: var(--seal-wash);
+}
+
+.tool-filter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ink-3);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--ink);
+  transition: transform 0.15s, background-color 0.15s;
+  position: relative;
 }
 
-.quick-icon {
-  font-size: 18px;
+.tool-filter:active {
+  transform: scale(0.95);
+  background: var(--paper-dim);
 }
 
-/* Summary Bar Spacer */
-.summary-bar-spacer {
-  height: 52px;
+.filter-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  background: var(--seal);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 已选 chips */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   margin-bottom: var(--space-sm);
 }
 
-/* Filters Container */
-.filters-container {
+.chip {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  margin-bottom: var(--space-lg);
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--seal-wash);
+  border: 1px solid oklch(0.55 0.13 35 / 0.35);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--seal);
+  transition: transform 0.15s;
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* List Status (loading / error) */
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chip-clear {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--ink-3);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 加载/错误 */
 .list-status {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-xl) var(--space-md);
-  color: var(--text-muted);
+  color: var(--ink-3);
   font-size: 14px;
   text-align: center;
 }
 
-.status-icon {
-  font-size: 32px;
-}
-
 .retry-btn {
-  padding: var(--space-xs) var(--space-lg);
-  background: var(--terracotta);
+  padding: 8px 24px;
+  background: var(--seal);
   color: white;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 600;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s;
+  transition: transform 0.15s, background-color 0.15s;
 }
 
 .retry-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+  background: var(--seal-deep);
 }
 </style>

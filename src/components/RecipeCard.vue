@@ -1,51 +1,54 @@
 <template>
-  <div class="recipe-card">
-    <div class="card-content" @click="openRecipe">
-      <div class="recipe-name">{{ recipe.name }}</div>
-      <div class="recipe-meta">
-        <span v-for="cuisine in recipe.cuisines" :key="cuisine" class="tag cuisine">
-          {{ cuisine }}
-        </span>
-        <span v-if="recipe.cooking_method" class="tag method">
-          {{ recipe.cooking_method }}
-        </span>
-      </div>
-    </div>
-    <div class="card-actions">
-      <button class="action-btn goto-btn" @click="openExternalLink" title="打开原链接">
-        <span class="arrow-icon">→</span>
-      </button>
-      <button
-        class="action-btn order-btn"
-        :class="{ added: justAdded, disabled: isInMenu }"
-        :disabled="isInMenu"
-        @click="addToMenu"
-      >
-        {{ buttonText }}
-      </button>
-    </div>
+  <div class="menu-row">
+    <button class="row-main" @click="openRecipe">
+      <span class="row-no">{{ String(number).padStart(2, '0') }}</span>
+      <span class="row-text">
+        <span class="row-name">{{ recipe.name }}</span>
+        <span v-if="metaLine" class="row-meta">{{ metaLine }}</span>
+      </span>
+    </button>
+    <span class="row-dots" aria-hidden="true"></span>
+    <button
+      v-if="externalUrl"
+      class="row-link"
+      aria-label="打开原菜谱链接"
+      @click="openExternalLink"
+    >
+      <AppIcon name="arrow-up-right" :size="14" />
+    </button>
+    <button
+      class="row-order"
+      :class="{ ordered: isInMenu }"
+      :disabled="isInMenu"
+      @click="addToMenu"
+    >
+      <AppIcon v-if="isInMenu" name="check" :size="13" />
+      {{ isInMenu ? '已点' : '点菜' }}
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Recipe } from '@/types'
 import { useMenuStore } from '@/stores/menu'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps<{
   recipe: Recipe
+  number: number
 }>()
 
 const router = useRouter()
 const menuStore = useMenuStore()
-const justAdded = ref(false)
 
 const isInMenu = computed(() => menuStore.hasItem(props.recipe.id))
-const buttonText = computed(() => {
-  if (justAdded.value) return '已点'
-  if (isInMenu.value) return '已点'
-  return '点菜'
+const externalUrl = computed(() => props.recipe.external_url || props.recipe.notion_url)
+
+const metaLine = computed(() => {
+  const parts = [...props.recipe.cuisines, props.recipe.cooking_method].filter(Boolean)
+  return parts.join(' · ')
 })
 
 function openRecipe() {
@@ -53,164 +56,141 @@ function openRecipe() {
 }
 
 function openExternalLink() {
-  const url = props.recipe.external_url || props.recipe.notion_url
-  if (url) {
-    window.open(url, '_blank')
+  if (externalUrl.value) {
+    window.open(externalUrl.value, '_blank')
   }
 }
 
 function addToMenu() {
   if (isInMenu.value) return
-
   menuStore.addItem({
     id: props.recipe.id,
     name: props.recipe.name,
     isCustom: false
   })
-
-  justAdded.value = true
-  setTimeout(() => {
-    justAdded.value = false
-  }, 500)
 }
 </script>
 
 <style scoped>
-.recipe-card {
+.menu-row {
   display: flex;
   align-items: center;
-  padding: var(--space-md);
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--cream-dark);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  gap: var(--space-sm);
+  padding: 10px 0;
 }
 
-.recipe-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--sage);
-  opacity: 0;
-  transition: opacity 0.2s;
+.menu-row + .menu-row {
+  border-top: 1px solid var(--rule);
 }
 
-.recipe-card:active::before {
-  opacity: 1;
-}
-
-.card-content {
-  flex: 1;
+.row-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
   min-width: 0;
-  cursor: pointer;
+  text-align: left;
+  padding: 2px 0;
 }
 
-.card-content:active {
-  opacity: 0.7;
+.row-main:active .row-name {
+  color: var(--seal);
 }
 
-.recipe-name {
-  font-family: var(--font-display);
-  font-size: 17px;
+.row-no {
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xs);
-  letter-spacing: 0.02em;
-}
-
-.recipe-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-}
-
-.tag.cuisine {
-  background: var(--sage-light);
-  color: var(--sage);
-}
-
-.tag.method {
-  background: var(--terracotta-light);
-  color: var(--terracotta);
-}
-
-.card-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin-left: var(--space-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--seal);
   flex-shrink: 0;
 }
 
-.action-btn {
+.row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+  transition: color 0.15s;
+}
+
+.row-meta {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+
+.row-dots {
+  flex: 1;
+  min-width: 12px;
+  border-bottom: 1px dotted var(--rule);
+  transform: translateY(-2px);
+}
+
+.row-link {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-full);
-  transition: all 0.2s;
+  color: var(--ink-3);
+  transition: background-color 0.15s, color 0.15s;
+  position: relative;
 }
 
-.goto-btn {
-  width: 28px;
-  height: 28px;
-  background: var(--cream-dark);
+/* 扩大触控热区 */
+.row-link::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
 }
 
-.goto-btn:active {
-  background: var(--sage);
+.row-link:active {
+  background: var(--paper-dim);
+  color: var(--ink-2);
 }
 
-.goto-btn:active .arrow-icon {
-  color: white;
-  transform: translateX(2px);
-}
-
-.arrow-icon {
-  font-size: 14px;
-  color: var(--text-muted);
-  transition: all 0.2s;
-}
-
-.order-btn {
-  padding: 6px 12px;
-  background: var(--mustard);
-  color: white;
-  font-size: 12px;
+/* 印章式点菜按钮 */
+.row-order {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 56px;
+  height: 32px;
+  border: 1.5px solid var(--seal);
+  border-radius: var(--radius-xs);
+  font-size: 13px;
   font-weight: 600;
+  color: var(--seal);
+  background: transparent;
+  transition: transform 0.15s, background-color 0.15s;
+  position: relative;
 }
 
-.order-btn:active {
-  transform: scale(0.95);
-  background: var(--mustard-light);
-  color: var(--ink);
+.row-order::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
 }
 
-.order-btn.added {
-  background: var(--sage);
+.row-order:not(:disabled):active {
+  transform: scale(0.94);
+  background: var(--seal-wash);
 }
 
-.order-btn.disabled {
-  background: var(--cream-dark);
-  color: var(--text-muted);
+.row-order.ordered {
+  border-color: var(--sage);
+  color: var(--sage);
+  background: var(--sage-wash);
   cursor: default;
-}
-
-.order-btn.disabled:active {
-  transform: none;
 }
 </style>

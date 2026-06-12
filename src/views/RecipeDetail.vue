@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchRecipeById } from '@/api/recipes'
 import type { RecipeWithDetails } from '@/types/recipe'
+import AppIcon from '@/components/AppIcon.vue'
 import IngredientList from '@/components/IngredientList.vue'
 import StepList from '@/components/StepList.vue'
 
@@ -12,6 +13,26 @@ const router = useRouter()
 const recipe = ref<RecipeWithDetails | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
+
+const metaLine = computed(() => {
+  if (!recipe.value) return ''
+  const parts = [
+    ...recipe.value.cuisines,
+    recipe.value.cooking_method,
+    recipe.value.difficulty,
+    recipe.value.cooking_time ? `${recipe.value.cooking_time} 分钟` : ''
+  ].filter(Boolean)
+  return parts.join(' · ')
+})
+
+const hasContent = computed(() =>
+  (recipe.value?.recipe_ingredients?.length ?? 0) > 0 ||
+  (recipe.value?.recipe_steps?.length ?? 0) > 0
+)
+
+const externalUrl = computed(() =>
+  recipe.value?.external_url || recipe.value?.notion_url || ''
+)
 
 onMounted(async () => {
   try {
@@ -31,44 +52,61 @@ function goBack() {
   router.back()
 }
 
-function openExternalUrl(url: string) {
-  window.open(url, '_blank')
+function openExternalUrl() {
+  if (externalUrl.value) {
+    window.open(externalUrl.value, '_blank')
+  }
 }
 </script>
 
 <template>
   <div class="recipe-detail">
-    <header class="detail-header">
-      <button class="back-btn" @click="goBack">← 返回</button>
-      <h1 class="detail-title" v-if="recipe">{{ recipe.name }}</h1>
+    <header class="topbar">
+      <button class="back-btn" aria-label="返回" @click="goBack">
+        <AppIcon name="arrow-left" :size="18" />
+        返回
+      </button>
     </header>
 
-    <div v-if="isLoading" class="loading">加载中...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <div v-if="isLoading" class="status">加载中…</div>
+    <div v-else-if="error" class="status error">{{ error }}</div>
 
     <main v-else-if="recipe" class="detail-content">
-      <div v-if="recipe.cover_image" class="cover-wrapper">
-        <img :src="recipe.cover_image" :alt="recipe.name" class="cover-image" />
+      <!-- 菜名牌头 -->
+      <div class="dish-head">
+        <h1 class="dish-name">{{ recipe.name }}</h1>
+        <p v-if="metaLine" class="dish-meta">{{ metaLine }}</p>
+        <div class="dish-rule" aria-hidden="true"></div>
       </div>
 
-      <div class="meta-tags">
-        <span v-for="cuisine in recipe.cuisines" :key="cuisine" class="tag cuisine-tag">{{ cuisine }}</span>
-        <span v-if="recipe.cooking_method" class="tag method-tag">{{ recipe.cooking_method }}</span>
-        <span v-if="recipe.difficulty" class="tag difficulty-tag">{{ recipe.difficulty }}</span>
-        <span v-if="recipe.cooking_time" class="tag time-tag">⏱ {{ recipe.cooking_time }}min</span>
-      </div>
+      <figure v-if="recipe.cover_image" class="cover-wrapper">
+        <img :src="recipe.cover_image" :alt="recipe.name" class="cover-image" loading="lazy" />
+      </figure>
 
-      <div v-if="recipe.external_url" class="external-link" @click="openExternalUrl(recipe.external_url)">
-        <span class="link-icon">📎</span>
-        <span class="link-text">查看视频菜谱</span>
-        <span class="link-arrow">→</span>
-      </div>
+      <button v-if="externalUrl && hasContent" class="external-link" @click="openExternalUrl">
+        <span class="link-text">查看原菜谱（视频）</span>
+        <AppIcon name="arrow-up-right" :size="15" />
+      </button>
 
-      <IngredientList :ingredients="recipe.recipe_ingredients || []" />
-      <StepList :steps="recipe.recipe_steps || []" />
+      <template v-if="hasContent">
+        <IngredientList :ingredients="recipe.recipe_ingredients || []" />
+        <StepList :steps="recipe.recipe_steps || []" />
+      </template>
+
+      <!-- 没记录做法时不留空页 -->
+      <div v-else class="no-content">
+        <p class="no-content-title">这道菜还没记笔记</p>
+        <p class="no-content-hint">
+          {{ externalUrl ? '做法在原链接里' : '下次做的时候记一下食材和步骤' }}
+        </p>
+        <button v-if="externalUrl" class="no-content-btn" @click="openExternalUrl">
+          去看原菜谱
+          <AppIcon name="arrow-up-right" :size="14" />
+        </button>
+      </div>
 
       <section v-if="recipe.tips" class="tips-section">
-        <h3 class="section-title">💡 小贴士</h3>
+        <h3 class="tips-title">备注</h3>
         <p class="tips-text">{{ recipe.tips }}</p>
       </section>
     </main>
@@ -77,150 +115,173 @@ function openExternalUrl(url: string) {
 
 <style scoped>
 .recipe-detail {
-  max-width: 600px;
+  max-width: var(--content-max);
   margin: 0 auto;
-  padding: var(--space-md);
-  padding-bottom: calc(var(--space-xl) * 2);
   min-height: 100vh;
-  background: var(--cream);
+  padding: var(--space-md);
+  padding-top: calc(var(--space-sm) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--space-xl) * 2 + env(safe-area-inset-bottom));
 }
 
-.detail-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
+.topbar {
+  margin-bottom: var(--space-sm);
 }
 
 .back-btn {
-  background: none;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 1rem;
-  color: var(--terracotta);
-  cursor: pointer;
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: 8px;
-  transition: background 0.2s;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--space-sm) 0 0;
+  font-size: 15px;
+  color: var(--ink-2);
+  transition: color 0.15s;
 }
 
-.back-btn:hover {
-  background: rgba(199, 91, 57, 0.1);
+.back-btn:active {
+  color: var(--seal);
 }
 
-.detail-title {
+/* 菜名牌头 */
+.dish-head {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.dish-name {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+  line-height: 1.3;
   color: var(--ink);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-wrap: balance;
+}
+
+.dish-meta {
+  margin-top: var(--space-xs);
+  font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.dish-rule {
+  margin-top: var(--space-md);
+  height: 4px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 
 .cover-wrapper {
-  border-radius: 12px;
-  overflow: hidden;
   margin-bottom: var(--space-md);
 }
 
 .cover-image {
   width: 100%;
   display: block;
-}
-
-.meta-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-md);
-}
-
-.tag {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.cuisine-tag {
-  background: rgba(199, 91, 57, 0.12);
-  color: var(--terracotta);
-}
-
-.method-tag {
-  background: rgba(125, 148, 113, 0.15);
-  color: var(--sage);
-}
-
-.difficulty-tag {
-  background: rgba(212, 167, 44, 0.15);
-  color: var(--mustard);
-}
-
-.time-tag {
-  background: var(--cream-dark);
-  color: var(--ink-light);
+  border-radius: var(--radius-sm);
+  outline: 1px solid oklch(0.25 0.04 45 / 0.1);
+  outline-offset: -1px;
 }
 
 .external-link {
+  width: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-sm);
+  min-height: 44px;
   padding: var(--space-sm) var(--space-md);
-  background: var(--paper);
-  border: 1px solid var(--cream-dark);
-  border-radius: 10px;
-  margin-bottom: var(--space-md);
-  cursor: pointer;
-  transition: background 0.2s;
+  border: 1px dashed var(--ink-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+  color: var(--seal);
+  transition: background-color 0.15s, transform 0.15s;
 }
 
-.external-link:hover {
-  background: var(--cream-dark);
+.external-link:active {
+  background: var(--seal-wash);
+  transform: scale(0.99);
 }
 
 .link-text {
-  flex: 1;
-  font-size: 0.9rem;
-  color: var(--terracotta);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.link-arrow {
-  color: var(--terracotta);
+/* 空内容 */
+.no-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xl) var(--space-md);
+  text-align: center;
 }
 
-.tips-section {
-  margin-top: var(--space-md);
-}
-
-.section-title {
+.no-content-title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--ink);
+  font-size: 18px;
+  color: var(--ink-2);
+}
+
+.no-content-hint {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-bottom: var(--space-md);
+}
+
+.no-content-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 var(--space-lg);
+  background: var(--seal);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.15s, background-color 0.15s;
+}
+
+.no-content-btn:active {
+  transform: scale(0.97);
+  background: var(--seal-deep);
+}
+
+/* 备注 */
+.tips-section {
+  margin-top: var(--space-lg);
+}
+
+.tips-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  color: var(--ink-2);
   margin-bottom: var(--space-sm);
 }
 
 .tips-text {
-  font-size: 0.95rem;
-  color: var(--ink-light);
-  line-height: 1.6;
-  background: rgba(212, 167, 44, 0.08);
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.7;
   padding: var(--space-sm) var(--space-md);
-  border-radius: 8px;
-  border-left: 3px solid var(--mustard);
+  border: 1px dashed var(--mustard);
+  border-radius: var(--radius-sm);
+  background: var(--mustard-wash);
 }
 
-.loading, .error {
+.status {
   text-align: center;
   padding: var(--space-xl);
-  color: var(--ink-light);
-  font-size: 1rem;
+  color: var(--ink-2);
+  font-size: 15px;
 }
 
-.error {
-  color: var(--terracotta);
+.status.error {
+  color: var(--seal);
 }
 </style>
